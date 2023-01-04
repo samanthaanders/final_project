@@ -103,14 +103,34 @@ class player(pygame.sprite.Sprite):
                 print(self.power + " has been used up")
     def attack(self):
         return random.randint(1,4)
+    def update(self, key_pressed, screen_width, screen_height):
+        if key_pressed[K_UP]:
+            self.hitbox.move_ip(0, -5)
+        if key_pressed[K_DOWN]:
+            self.hitbox.move_ip(0, 5)
+        if key_pressed[K_LEFT]:
+            self.hitbox.move_ip(-5, 0)
+        if key_pressed[K_RIGHT]:
+            self.hitbox.move_ip(5, 0)
+
+        if self.hitbox.left < 0:
+            self.hitbox.left = 0
+        if self.hitbox.right > screen_width:
+            self.hitbox.right = screen_width
+        if self.hitbox.top <= 0:
+            self.hitbox.top = 0
+        if self.hitbox.bottom >= screen_height:
+            self.hitbox.bottom = screen_height
+
 
 screen = pygame.display.set_mode((1000,600), pygame.RESIZABLE)
-pygame.display.set_caption("game")
+pygame.display.set_caption("game!")
 white = (255,255,255)
 screen.fill(white)
 pygame.display.flip()
 
 p1 = player("name", 5, 10, random.randint(1,4),0, None)
+
 
 running = True
 while running == True:
@@ -120,6 +140,11 @@ while running == True:
         elif event.type == KEYDOWN:
             if event.key == K_ESCAPE:
                 running = False
+    
+    key_pressed = pygame.key.get_pressed()
+    screen_width = screen.get_width()
+    screen_height = screen.get_height()
+    p1.update(key_pressed, screen_width, screen_height)
     screen.fill(white)
     screen.blit(p1.sprite, p1.hitbox) # sprite goes to top left corner
     pygame.display.flip()
