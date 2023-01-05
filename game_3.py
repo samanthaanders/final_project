@@ -1,5 +1,6 @@
 import pygame
 import random
+import time
 from pygame.locals import (
     K_UP,
     K_DOWN,
@@ -40,67 +41,67 @@ class player(pygame.sprite.Sprite):
         self.sprite.fill((0,0,0))
         self.hitbox = self.sprite.get_rect() # hitbox = rect
     def take_damage(self, num, damage, name):
-        print(name, "attacked!")
+        print(name, "attacked!") ###
         if (self.num == num):
             self.health -= damage
-            print("the attack was very strong!")
+            print("the attack was very strong!") ##
         elif ((self.num - num == 1) or (self.num - num == -1)): # if the numbers are within 1 of eachother, 1/2 damage is dealt
             self.health -= damage / 2
-            print("the attack was strong")
+            print("the attack was strong") ###
         elif ((self.num - num == 2) or (self.num - num == -2)): # if the numbers are within 2 of eachother, 1/4 damage is dealt
             self.health -= damage / 4
-            print("the attack was weak")
+            print("the attack was weak") ###
         else:
-            print("the attack failed!")
+            print("the attack failed!") ###
     def check_health(self):
         if (self.health <= 0):
-            print(self.name,"lost!")
+            print(self.name,"lost!") ###
         else:
-            print(self.name + "'s health is: ", self.health)
+            print(self.name + "r health is: ", self.health) ###
     def use_power(self, uses, amount):
         if (self.power == "strength potion"):
             if uses > 0:
                 self.strength += amount
-                print(self.name +"'s strength:", self.strength)
-                print(self.power +" uses left: ",(uses - 1))
+                print(self.name +"'s strength:", self.strength) ###
+                print(self.power +" uses left: ",(uses - 1)) ###
             else:
-                print(self.power + " has been used up")
+                print(self.power + " has been used up") ###
         elif (self.power == "health potion"):
             if uses > 0:
                 self.health += amount
-                print(self.name +"'s health:", self.health)
-                print(self.power +" uses left: ",(uses - 1))
+                print(self.name +"'s health:", self.health) ###
+                print(self.power +" uses left: ",(uses - 1)) ###
             else:
-                print(self.power + " has been used up")
+                print(self.power + " has been used up") ###
         elif (self.power == "cookie"):
             if uses > 0:
                 self.health += amount
-                print(self.name +"'s health:", self.health)
-                print(self.power +" uses left: ",(uses - 1))
+                print(self.name +"'s health:", self.health) ###
+                print(self.power +" uses left: ",(uses - 1)) ###
             else:
-                print(self.power + " has been used up")
+                print(self.power + " has been used up") ###
         elif (self.power == "sword"):
             if uses > 0:
                 self.strength += amount
-                print(self.name +"'s strength:", self.strength)
-                print(self.power +" uses left: ",(uses - 1))
+                print(self.name +"'s strength:", self.strength) ###
+                print(self.power +" uses left: ",(uses - 1)) ###
             else:
-                print(self.power + " has already been equipped")
+                print(self.power + " has already been equipped") ###
         elif (self.power == "health spell"):
             if uses > 0:
                 self.health += amount
-                print(self.name +"'s health:", self.health)
-                print(self.power +" uses left: ",(uses - 1))
+                print(self.name +"'s health:", self.health) ###
+                print(self.power +" uses left: ",(uses - 1)) ###
             else:
-                print(self.power + " has been used up")
+                print(self.power + " has been used up") ###
         elif (self.power == "luck potion"):
             if uses > 0:
                 amount = self.obj_item.rand_amount() # composition to use method of "special_item" class
                 self.health += amount
-                print(self.name +"'s health:", self.health)
-                print(self.power +" uses left: ",(uses - 1))
+                print(self.name +"'s health:", self.health) ###
+                print(self.power +" uses left: ",(uses - 1)) ###
             else:
-                print(self.power + " has been used up")
+                print(self.power + " has been used up") ###
     def attack(self):
         return random.randint(1,4)
     def update(self, key_pressed, screen_width, screen_height):
@@ -122,6 +123,38 @@ class player(pygame.sprite.Sprite):
         if self.hitbox.bottom >= screen_height:
             self.hitbox.bottom = screen_height
 
+class enemy:
+    def __init__(self, name, strength, health, num, money, reward, player):
+        self.name = name
+        self.strength = strength
+        self.health = health
+        self.num = num
+        self.money = money
+        self.reward = reward
+        self.agg_player = player
+
+    def take_damage(self, num, damage, name):
+        print(name, "attacked!") ###
+        if (self.num == num):
+            self.health -= damage
+            print("the attack was very strong!") ###
+        elif ((self.num - num == 1) or (self.num - num == -1)):
+            self.health -= damage / 2
+            print("the attack was strong") ###
+        elif ((self.num - num == 2) or (self.num - num == 2)):
+            self.health -= damage / 4
+            print("the attack was weak") ###
+        else:
+            print("the attack failed!") ###
+   
+    def check_health(self):
+        if (self.health <= 0):
+            print(self.name,"lost!") ###
+        else:
+            print(self.name + "'s health is: ", self.health) ###
+
+    def attack(self):
+        return self.agg_player.attack() # aggregation to reuse the player class's attack method
 
 screen = pygame.display.set_mode((1000,600), pygame.RESIZABLE)
 pygame.display.set_caption("game!")
@@ -129,24 +162,98 @@ white = (255,255,255)
 screen.fill(white)
 pygame.display.flip()
 
-p1 = player("name", 5, 10, random.randint(1,4),0, None)
+p1 = player("you", 5, 10, random.randint(1,4),0, None)
+p1_power = None #is this necessasry??
 
+font = pygame.font.Font('freesansbold.ttf', 32)
+start_text = font.render("welcome", True, (255,255,255), (0,0,0)) # maybe i should use an image instead of pygame text ?
+text_rect = start_text.get_rect()
 
-running = True
-while running == True:
-    for event in pygame.event.get():
-        if event.type == pygame.QUIT:
-            running = False
-        elif event.type == KEYDOWN:
-            if event.key == K_ESCAPE:
-                running = False
-    
+# enemy names are randomized from this list 
+enemy_names = ["cave", "forest", "tree", "water", "fire"]
+
+playing = True
+while playing == True:
     key_pressed = pygame.key.get_pressed()
     screen_width = screen.get_width()
     screen_height = screen.get_height()
     p1.update(key_pressed, screen_width, screen_height)
     screen.fill(white)
     screen.blit(p1.sprite, p1.hitbox) # sprite goes to top left corner
+    clock = pygame.time.Clock()
+    for event in pygame.event.get():
+        if event.type == pygame.QUIT:
+            playing = False
+        elif event.type == KEYDOWN:
+            if event.key == K_ESCAPE:
+                rplaying = False
+    
+    # creates all the objects
+    e1 = enemy("small " + enemy_names[(random.randint(0,4))] + " monster", 3, 5, (random.randint(1,4)), 3, 1, p1)
+    e2 = enemy(enemy_names[(random.randint(0,4))] + " monster", 5, 5, (random.randint(1,4)), 9, 3, p1)
+    e3 = enemy(enemy_names[(random.randint(0,4))] + " monster", 5, 10, (random.randint(1,4)), 15, 5, p1)
+    boss = enemy("big "+ enemy_names[(random.randint(0,4))] + " monster", 8, 15, (random.randint(1,4)), 30, 10, p1) 
+    strength_potion = item("strength potion", 15, 3, "increases strength by 5. Can be used 3 times.", 5)
+    health_potion = item("health potion", 20, 5, "increases health by 5. Can be used 5 times.", 5)
+    cookie = item("cookie", 2, 1, "increases health by 3. Can be used once.", 3)
+    sword = item("sword", 8, 1, "increases strength by 5. Can be used once.", 5)
+    health_spell = item("health spell", 50, 10, "increases health by 7. Can be used 10 times.", 7)
+    luck_potion = special_item("luck potion", 30, 10, "increases health by a random amount between 1-10. Can be used 10 times.", 1)
+
+    battling = True
+
+    # function used for all battles 
+    def battle(e, power):
+        p1.health = 10
+        while (battling == True):
+            p1.take_damage(e1.attack(), e.strength, e.name)
+            p1.check_health()
+            
+            # player loses
+            if ((p1.health <= 0)):
+                battling == False
+                break
+
+            ans = input("What do you do? \n") ##
+            if (ans == p1.power):
+                p1.use_power(power.uses, power.amount)
+                power.uses -= 1
+            elif (ans == "attack"):
+                e.take_damage(p1.attack(), (p1.strength), p1.name)
+                e.check_health()
+            elif (ans == "quit"):
+                #print("thanks for playing!")
+                quit()
+            else:
+                print("invalid response! your turn has been skipped.") ###
+        
+            time.sleep(1.5)
+
+            # player wins
+            if ((e.health <= 0)):
+                #print("Good job!")
+                p1.money += e.money
+                #print("+" , e.money, "coins")
+                #print(p1.name,"has", p1.money,"coins")
+                p1.strength += e.reward
+                #print("+", e.reward, "strength") 
+                #print(p1.name + "'s strength:",p1.strength)
+                battling == False
+                break
+    
+    #print("battle 1")
+    battle(e1, p1_power)
+   
+    #print("battle 2")
+    time.sleep(1.5)
+    battle(e2, p1_power)
+    
+    #print("battle 3")
+    time.sleep(1.5)
+    battle(e3, p1_power)
+
+
     pygame.display.flip()
+    clock.tick(150)
 
 pygame.quit()
