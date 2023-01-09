@@ -13,8 +13,16 @@ from pygame.locals import (
 pygame.init()
 
 font = pygame.font.Font('freesansbold.ttf', 32)
-text = font.render(" ", True, (255,255,255), (0,0,0)) # maybe i should use an image instead of pygame text ?
+text = font.render(" ", True, (255,255,255), (0,0,0))
 #text_rect = text.get_rect()
+
+screen = pygame.display.set_mode((1000,600), pygame.RESIZABLE)
+pygame.display.set_caption("game!")
+white = (255,255,255)
+
+NEW_BATTLE = pygame.USEREVENT + 1
+pygame.time.set_timer(NEW_BATTLE, 1000)
+
 
 class item:
     def __init__(self, name, cost, uses, desc, amount):
@@ -45,23 +53,33 @@ class player(pygame.sprite.Sprite):
         self.sprite.fill((0,0,0))
         self.hitbox = self.sprite.get_rect() # hitbox = rect
     def take_damage(self, num, damage, name):
-        ###print(name, "attacked!") 
+        message = name, "attacked!"
+        text = font.render(str(message), True, (0,0,0))
+        screen.blit(text,(100,100))
         if (self.num == num):
             self.health -= damage
-            ###print("the attack was very strong!") 
+            text = font.render(("the attack was very strong!"), True, (0,0,0))
+            screen.blit(text,(100,200))
         elif ((self.num - num == 1) or (self.num - num == -1)): # if the numbers are within 1 of eachother, 1/2 damage is dealt
             self.health -= damage / 2
-            ###print("the attack was strong") ###
+            text = font.render(("the attack was strong"), True, (0,0,0))
+            screen.blit(text,(100,200))
         elif ((self.num - num == 2) or (self.num - num == -2)): # if the numbers are within 2 of eachother, 1/4 damage is dealt
             self.health -= damage / 4
-            ###print("the attack was weak") ###
+            text = font.render(("the attack was weak"), True, (0,0,0))
+            screen.blit(text,(100,200))
         else:
-            print("the attack failed!") ###
+            text = font.render(("the attack failed!"), True, (0,0,0))
+            screen.blit(text,(100,200))
     def check_health(self):
         if (self.health <= 0):
-            print(self.name,"lost!") ###
+            message = self.name, "lost!"
+            text = font.render(str(message), True, (0,0,0))
+            screen.blit(text,(100,100))
         else:
-            print(self.name + "r health is: ", self.health) ###
+            message = self.name, "r health is: ", self.health
+            text = font.render(str(message), True, (0,0,0))
+            screen.blit(text,(100,100))
     def use_power(self, uses, amount):
         if (self.power == "strength potion"):
             if uses > 0:
@@ -164,14 +182,27 @@ class enemy(pygame.sprite.Sprite):
     def attack(self):
         return self.agg_player.attack() # aggregation to reuse the player class's attack method
 
-screen = pygame.display.set_mode((1000,600), pygame.RESIZABLE)
-pygame.display.set_caption("game!")
-white = (255,255,255)
-screen.fill(white)
-pygame.display.flip()
+#screen.fill(white)
+#pygame.display.flip()
 
 p1 = player("you", 5, 10, random.randint(1,4),0, None)
 p1_power = None #is this necessasry??
+
+# enemy names are randomized from this list 
+enemy_names = ["cave", "forest", "tree", "water", "fire"]
+
+#create objects
+strength_potion = item("strength potion", 15, 3, "increases strength by 5. Can be used 3 times.", 5)
+health_potion = item("health potion", 20, 5, "increases health by 5. Can be used 5 times.", 5)
+cookie = item("cookie", 2, 1, "increases health by 3. Can be used once.", 3)
+sword = item("sword", 8, 1, "increases strength by 5. Can be used once.", 5)
+health_spell = item("health spell", 50, 10, "increases health by 7. Can be used 10 times.", 7)
+luck_potion = special_item("luck potion", 30, 10, "increases health by a random amount between 1-10. Can be used 10 times.", 1)
+
+e1 = enemy("small " + enemy_names[(random.randint(0,4))] + " monster", 3, 5, (random.randint(1,4)), 3, 1, p1)
+e2 = enemy(enemy_names[(random.randint(0,4))] + " monster", 5, 5, (random.randint(1,4)), 9, 3, p1)
+e3 = enemy(enemy_names[(random.randint(0,4))] + " monster", 5, 10, (random.randint(1,4)), 15, 5, p1)
+boss = enemy("big "+ enemy_names[(random.randint(0,4))] + " monster", 8, 15, (random.randint(1,4)), 30, 10, p1) 
 
 # enemy names are randomized from this list 
 enemy_names = ["cave", "forest", "tree", "water", "fire"]
@@ -181,7 +212,7 @@ def battle(e, power):
     battling = True
     p1.health = 10
     while (battling == True):
-        p1.take_damage(e1.attack(), e.strength, e.name)
+        p1.take_damage(e.attack(), e.strength, e.name)
         p1.check_health()
             
         # player loses
@@ -219,14 +250,50 @@ def battle(e, power):
             battling == False
             break
 
+def create_enemies():
+    e1 = enemy("small " + enemy_names[(random.randint(0,4))] + " monster", 3, 5, (random.randint(1,4)), 3, 1, p1)
+    e2 = enemy(enemy_names[(random.randint(0,4))] + " monster", 5, 5, (random.randint(1,4)), 9, 3, p1)
+    e3 = enemy(enemy_names[(random.randint(0,4))] + " monster", 5, 10, (random.randint(1,4)), 15, 5, p1)
+    boss = enemy("big "+ enemy_names[(random.randint(0,4))] + " monster", 8, 15, (random.randint(1,4)), 30, 10, p1) 
+
 big_font = pygame.font.Font('freesansbold.ttf', 80)
 start_text = font.render("Play", True, (0,0,0))
 start_text_rect = start_text.get_rect()
 start_text_rect.center = (100,100)
 
+clock = pygame.time.Clock()
+
 running = True
-playing = False
 while running == True:
+    key_pressed = pygame.key.get_pressed()
+    mouse_pos = pygame.mouse.get_pos()
+    screen_width = screen.get_width()
+    screen_height = screen.get_height()
+    screen.fill(white)
+    for event in pygame.event.get():
+        if event.type == pygame.QUIT:
+            running = False
+        elif event.type == KEYDOWN:
+            if event.key == K_ESCAPE:
+                running = False
+            
+
+    screen.blit(start_text, start_text_rect)
+
+    if  event.type == pygame.MOUSEBUTTONDOWN:
+        if start_text_rect.collidepoint(mouse_pos):
+            text = font.render("hello", True, (0,0,0)) 
+            screen.blit(text, (100,100))
+            p1.update(key_pressed, screen_width, screen_height)
+            screen.blit(p1.sprite, p1.hitbox) # sprite goes to top left corner
+            running = False
+
+    pygame.display.flip()
+    clock.tick(150) #150
+
+running = True
+while running == True:
+
     key_pressed = pygame.key.get_pressed()
     mouse_pos = pygame.mouse.get_pos()
     screen_width = screen.get_width()
@@ -239,43 +306,33 @@ while running == True:
         elif event.type == KEYDOWN:
             if event.key == K_ESCAPE:
                 running = False
+        elif event.type == NEW_BATTLE:
+            while p1.health >= 0 and e1.health >= 0: 
+                create_enemies()
+                p1.take_damage(e1.num, e1.strength, e1.name)
+                pygame.display.flip()
+                p1.check_health()
+                for event in pygame.event.get(): # this part is not working :')
+                    if event.type == pygame.QUIT:
+                        running = False
+                    elif event.type == KEYDOWN:
+                        if event.key == K_ESCAPE:
+                            running = False
 
-    screen.blit(start_text, start_text_rect)
-    if start_text_rect.collidepoint(mouse_pos) and pygame.MOUSEBUTTONDOWN:
-        playing = True
 
-    while playing == True:
-        text = font.render("hello", True, (0,0,0)) 
-        screen.blit(text, (100,100))
+    p1.update(key_pressed, screen_width, screen_height)
+    screen.blit(p1.sprite, p1.hitbox) # sprite goes to top left corner
 
-        p1.update(key_pressed, screen_width, screen_height)
-        screen.blit(p1.sprite, p1.hitbox) # sprite goes to top left corner
-
-        # creates all the objects
-        e1 = enemy("small " + enemy_names[(random.randint(0,4))] + " monster", 3, 5, (random.randint(1,4)), 3, 1, p1)
-        e2 = enemy(enemy_names[(random.randint(0,4))] + " monster", 5, 5, (random.randint(1,4)), 9, 3, p1)
-        e3 = enemy(enemy_names[(random.randint(0,4))] + " monster", 5, 10, (random.randint(1,4)), 15, 5, p1)
-        boss = enemy("big "+ enemy_names[(random.randint(0,4))] + " monster", 8, 15, (random.randint(1,4)), 30, 10, p1) 
-        strength_potion = item("strength potion", 15, 3, "increases strength by 5. Can be used 3 times.", 5)
-        health_potion = item("health potion", 20, 5, "increases health by 5. Can be used 5 times.", 5)
-        cookie = item("cookie", 2, 1, "increases health by 3. Can be used once.", 3)
-        sword = item("sword", 8, 1, "increases strength by 5. Can be used once.", 5)
-        health_spell = item("health spell", 50, 10, "increases health by 7. Can be used 10 times.", 7)
-        luck_potion = special_item("luck potion", 30, 10, "increases health by a random amount between 1-10. Can be used 10 times.", 1)
-        
-        playing = False
-
-        
-        #print("battle 1")
-        #battle(e1, p1_power)
+    #print("battle 1")
+    #battle(e1, p1_power)
     
-        #print("battle 2")
-        #time.sleep(1.5)
-        #battle(e2, p1_power)
+    #print("battle 2")
+    #time.sleep(1.5)
+    #battle(e2, p1_power)
         
-        #print("battle 3")
-        #time.sleep(1.5)
-        #battle(e3, p1_power)
+    #print("battle 3")
+    #time.sleep(1.5)
+    #battle(e3, p1_power)
 
     pygame.display.flip()
     clock.tick(150) #150
