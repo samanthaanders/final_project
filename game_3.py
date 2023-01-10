@@ -13,7 +13,6 @@ from pygame.locals import (
 pygame.init()
 
 font = pygame.font.Font('freesansbold.ttf', 32)
-text = font.render(" ", True, (255,255,255), (0,0,0))
 #text_rect = text.get_rect()
 
 screen = pygame.display.set_mode((1000,600), pygame.RESIZABLE)
@@ -21,7 +20,7 @@ pygame.display.set_caption("game!")
 white = (255,255,255)
 
 NEW_BATTLE = pygame.USEREVENT + 1
-pygame.time.set_timer(NEW_BATTLE, 1000)
+pygame.time.set_timer(NEW_BATTLE, 1)
 
 
 class item:
@@ -52,34 +51,41 @@ class player(pygame.sprite.Sprite):
         self.sprite = pygame.Surface((50, 50)) # create character sprite
         self.sprite.fill((0,0,0))
         self.hitbox = self.sprite.get_rect() # hitbox = rect
+        self.text = font.render(" ", True, (255,255,255), (0,0,0))
+        #self.text2 = font.render(" ", True, (255,255,255), (0,0,0))
     def take_damage(self, num, damage, name):
-        message = name, "attacked!"
-        text = font.render(str(message), True, (0,0,0))
-        screen.blit(text,(100,100))
+        name = str(name)
+        message = name + " attacked!"
+        text = font.render(message, True, (0,0,0))
+        this_text = font.render(" ", True, (0,0,0))
+        screen.blit(text,(100,70))
         if (self.num == num):
             self.health -= damage
-            text = font.render(("the attack was very strong!"), True, (0,0,0))
-            screen.blit(text,(100,200))
+            this_text = font.render(("the attack was very strong!"), True, (0,0,0))
+            screen.blit(this_text,(100,200))
+            pygame.display.update()
         elif ((self.num - num == 1) or (self.num - num == -1)): # if the numbers are within 1 of eachother, 1/2 damage is dealt
             self.health -= damage / 2
-            text = font.render(("the attack was strong"), True, (0,0,0))
-            screen.blit(text,(100,200))
+            this_text = font.render(("the attack was strong"), True, (0,0,0))
+            screen.blit(this_text,(100,200))
+            pygame.display.update()
         elif ((self.num - num == 2) or (self.num - num == -2)): # if the numbers are within 2 of eachother, 1/4 damage is dealt
             self.health -= damage / 4
-            text = font.render(("the attack was weak"), True, (0,0,0))
-            screen.blit(text,(100,200))
+            this_text = font.render(("the attack was weak"), True, (0,0,0))
+            screen.blit(this_text,(100,200))
+            pygame.display.update()
         else:
-            text = font.render(("the attack failed!"), True, (0,0,0))
-            screen.blit(text,(100,200))
+            self.text = font.render(("the attack failed!"), True, (0,0,0))
+            screen.blit(self.text,(100,200))
     def check_health(self):
         if (self.health <= 0):
-            message = self.name, "lost!"
-            text = font.render(str(message), True, (0,0,0))
-            screen.blit(text,(100,100))
+            message = self.name + " lost!"
+            self.text2 = font.render(message, True, (0,0,0))
+            screen.blit(self.text2,(100,100))
         else:
-            message = self.name, "r health is: ", self.health
-            text = font.render(str(message), True, (0,0,0))
-            screen.blit(text,(100,100))
+            message = self.name + "r health is: " + str(self.health)
+            self.text2 = font.render(message, True, (0,0,0))
+            screen.blit(self.text2,(100,100))
     def use_power(self, uses, amount):
         if (self.power == "strength potion"):
             if uses > 0:
@@ -263,6 +269,7 @@ start_text_rect.center = (100,100)
 
 clock = pygame.time.Clock()
 
+# start screen
 running = True
 while running == True:
     key_pressed = pygame.key.get_pressed()
@@ -282,8 +289,6 @@ while running == True:
 
     if  event.type == pygame.MOUSEBUTTONDOWN:
         if start_text_rect.collidepoint(mouse_pos):
-            text = font.render("hello", True, (0,0,0)) 
-            screen.blit(text, (100,100))
             p1.update(key_pressed, screen_width, screen_height)
             screen.blit(p1.sprite, p1.hitbox) # sprite goes to top left corner
             running = False
@@ -291,6 +296,7 @@ while running == True:
     pygame.display.flip()
     clock.tick(150) #150
 
+# main loop
 running = True
 while running == True:
 
@@ -306,33 +312,38 @@ while running == True:
         elif event.type == KEYDOWN:
             if event.key == K_ESCAPE:
                 running = False
-        elif event.type == NEW_BATTLE:
+    while p1.health >= 0 and e1.health >= 0: 
+        clock.tick(5)
+        p1.take_damage(e1.attack(), e1.strength, e1.name)
+        pygame.display.update()
+        clock.tick(5)
+        p1.check_health()
+        for event in pygame.event.get(): 
+            if event.type == pygame.QUIT:
+                running = False
+            elif event.type == KEYDOWN:
+                if event.key == K_ESCAPE:
+                    running = False
+        
+        """
+        elif event.type == NEW_BATTLE: # this part is not working 
+            create_enemies()
             while p1.health >= 0 and e1.health >= 0: 
-                create_enemies()
+                clock.tick(5)
                 p1.take_damage(e1.num, e1.strength, e1.name)
+                clock.tick(5)
                 pygame.display.flip()
                 p1.check_health()
-                for event in pygame.event.get(): # this part is not working :')
+                for event in pygame.event.get(): 
                     if event.type == pygame.QUIT:
                         running = False
                     elif event.type == KEYDOWN:
                         if event.key == K_ESCAPE:
                             running = False
-
+        """
 
     p1.update(key_pressed, screen_width, screen_height)
-    screen.blit(p1.sprite, p1.hitbox) # sprite goes to top left corner
-
-    #print("battle 1")
-    #battle(e1, p1_power)
-    
-    #print("battle 2")
-    #time.sleep(1.5)
-    #battle(e2, p1_power)
-        
-    #print("battle 3")
-    #time.sleep(1.5)
-    #battle(e3, p1_power)
+    screen.blit(p1.sprite, p1.hitbox)
 
     pygame.display.flip()
     clock.tick(150) #150
