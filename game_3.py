@@ -51,41 +51,44 @@ class player(pygame.sprite.Sprite):
         self.sprite = pygame.Surface((50, 50)) # create character sprite
         self.sprite.fill((0,0,0))
         self.hitbox = self.sprite.get_rect() # hitbox = rect
-        self.text = font.render(" ", True, (255,255,255), (0,0,0))
+        self.text = font.render(" ", True, (255,255,255), (0,0,0)) ###3
         #self.text2 = font.render(" ", True, (255,255,255), (0,0,0))
+        self.health_message = self.name + "r health is: " + str(self.health)
     def take_damage(self, num, damage, name):
         name = str(name)
         message = name + " attacked!"
-        text = font.render(message, True, (0,0,0))
-        this_text = font.render(" ", True, (0,0,0))
+        text = font.render(message, True, (0,0,0), (150, 171, 255))
+        #this_text = font.render(" ", True, (0,0,0))
         screen.blit(text,(100,70))
         if (self.num == num):
             self.health -= damage
-            this_text = font.render(("the attack was very strong!"), True, (0,0,0))
-            screen.blit(this_text,(100,200))
+            text = font.render(("the attack was very strong!"), True, (0,0,0), (150, 171, 255))
+            screen.blit(text,(100,200))
             pygame.display.update()
         elif ((self.num - num == 1) or (self.num - num == -1)): # if the numbers are within 1 of eachother, 1/2 damage is dealt
             self.health -= damage / 2
-            this_text = font.render(("the attack was strong"), True, (0,0,0))
-            screen.blit(this_text,(100,200))
+            text = font.render(("the attack was strong"), True, (0,0,0), (150, 171, 255))
+            screen.blit(text,(100,200))
             pygame.display.update()
         elif ((self.num - num == 2) or (self.num - num == -2)): # if the numbers are within 2 of eachother, 1/4 damage is dealt
             self.health -= damage / 4
-            this_text = font.render(("the attack was weak"), True, (0,0,0))
-            screen.blit(this_text,(100,200))
+            text = font.render(("the attack was weak"), True, (0,0,0), (150, 171, 255))
+            screen.blit(text,(100,200))
             pygame.display.update()
         else:
-            self.text = font.render(("the attack failed!"), True, (0,0,0))
-            screen.blit(self.text,(100,200))
+            text = font.render(("the attack failed!"), True, (0,0,0), (150, 171, 255))
+            screen.blit(text,(100,200))
     def check_health(self):
         if (self.health <= 0):
             message = self.name + " lost!"
-            self.text2 = font.render(message, True, (0,0,0))
+            self.text2 = font.render(message, True, (0,0,0),(150, 171, 255))
             screen.blit(self.text2,(100,100))
         else:
-            message = self.name + "r health is: " + str(self.health)
-            self.text2 = font.render(message, True, (0,0,0))
+            message = self.name + "r health is: " + str(self.health) + "  "
+            self.text2 = font.render(message, True, (0,0,0),(150, 171, 255))
             screen.blit(self.text2,(100,100))
+            #self.text2 = font.render(message, True, (150, 171, 255),(150, 171, 255))
+            #screen.blit(self.text2,(100,100))
     def use_power(self, uses, amount):
         if (self.power == "strength potion"):
             if uses > 0:
@@ -150,6 +153,9 @@ class player(pygame.sprite.Sprite):
             self.hitbox.top = 0
         if self.hitbox.bottom >= screen_height:
             self.hitbox.bottom = screen_height
+    def update_text(self):
+        text = font.render(("the attack was very strong!"), True, (150, 171, 255), (150, 171, 255))
+        screen.blit(text,(100,200))
 
 class enemy(pygame.sprite.Sprite):
     def __init__(self, name, strength, health, num, money, reward, player):
@@ -313,11 +319,14 @@ while running == True:
             if event.key == K_ESCAPE:
                 running = False
     while p1.health >= 0 and e1.health >= 0: 
-        clock.tick(5)
+        #clock.tick(5)
         p1.take_damage(e1.attack(), e1.strength, e1.name)
-        pygame.display.update()
-        clock.tick(5)
+        #pygame.display.update()
+        #clock.tick(5)
+        time.sleep(0.5)
+        p1.update_text()
         p1.check_health()
+        time.sleep(0.5)
         for event in pygame.event.get(): 
             if event.type == pygame.QUIT:
                 running = False
