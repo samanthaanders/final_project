@@ -19,7 +19,7 @@ screen = pygame.display.set_mode((1000,600), pygame.RESIZABLE)
 pygame.display.set_caption("game!")
 white = (255,255,255)
 
-NEW_BATTLE = pygame.USEREVENT + 1
+NEW_BATTLE = pygame.USEREVENT + 1 ## maybe unnecessary
 pygame.time.set_timer(NEW_BATTLE, 1)
 
 
@@ -58,8 +58,8 @@ class player(pygame.sprite.Sprite):
         name = str(name)
         message = name + " attacked!"
         text = font.render(message, True, (0,0,0), (150, 171, 255))
-        #this_text = font.render(" ", True, (0,0,0))
         screen.blit(text,(100,70))
+        pygame.display.update()
         if (self.num == num):
             self.health -= damage
             text = font.render(("the attack was very strong!"), True, (0,0,0), (150, 171, 255))
@@ -81,12 +81,14 @@ class player(pygame.sprite.Sprite):
     def check_health(self):
         if (self.health <= 0):
             message = self.name + " lost!"
-            self.text2 = font.render(message, True, (0,0,0),(150, 171, 255))
-            screen.blit(self.text2,(100,100))
+            text = font.render(message, True, (0,0,0),(150, 171, 255))
+            screen.blit(text,(100,100))
+            pygame.display.update()
         else:
             message = self.name + "r health is: " + str(self.health) + "  "
-            self.text2 = font.render(message, True, (0,0,0),(150, 171, 255))
-            screen.blit(self.text2,(100,100))
+            text = font.render(message, True, (0,0,0),(150, 171, 255))
+            screen.blit(text,(100,100))
+            pygame.display.update()
             #self.text2 = font.render(message, True, (150, 171, 255),(150, 171, 255))
             #screen.blit(self.text2,(100,100))
     def use_power(self, uses, amount):
@@ -156,6 +158,9 @@ class player(pygame.sprite.Sprite):
     def update_text(self):
         text = font.render(("the attack was very strong!"), True, (150, 171, 255), (150, 171, 255))
         screen.blit(text,(100,200))
+        text = font.render(("small forest monster's heath is: 10  "), True, (150, 171, 255), (150, 171, 255))
+        screen.blit(text,(100,100))
+
 
 class enemy(pygame.sprite.Sprite):
     def __init__(self, name, strength, health, num, money, reward, player):
@@ -172,27 +177,53 @@ class enemy(pygame.sprite.Sprite):
         self.hitbox = self.sprite.get_rect() # hitbox = rect
 
     def take_damage(self, num, damage, name):
-        print(name, "attacked!") ###
+        message = str(name) + " attacked!"
+        text = font.render(message, True, (0,0,0), (150, 171, 255))
+        screen.blit(text,(100,70))
+        pygame.display.update()
         if (self.num == num):
             self.health -= damage
+            text = font.render("the attack was very strong!", True, (0,0,0), (150, 171, 255))
+            screen.blit(text,(100,200))
+            pygame.display.update()
             ###print("the attack was very strong!") ###
         elif ((self.num - num == 1) or (self.num - num == -1)):
             self.health -= damage / 2
+            text = font.render("the attack was strong", True, (0,0,0), (150, 171, 255))
+            screen.blit(text,(100,200))
+            pygame.display.update()
             ###print("the attack was strong") ###
         elif ((self.num - num == 2) or (self.num - num == 2)):
             self.health -= damage / 4
+            text = font.render("the attack was weak", True, (0,0,0), (150, 171, 255))
+            screen.blit(text,(100,200))
+            pygame.display.update()
             ###print("the attack was weak") ###
         else:
-            print("the attack failed!") ###
+            text = font.render("the attack failed!", True, (0,0,0), (150, 171, 255))
+            screen.blit(text,(100,200))
+            pygame.display.update()
+            ###print("the attack failed!") ##
    
     def check_health(self):
         if (self.health <= 0):
-            print(self.name,"lost!") ###
+            message = self.name +  " lost!"
+            text = font.render(message, True, (0,0,0),(150, 171, 255))
+            screen.blit(text,(100,100))
+            pygame.display.update()
+            ###print(self.name,"lost!") ###
         else:
-            print(self.name + "'s health is: ", self.health) ###
+            message = self.name + "'s health is: " + str(self.health) + " "
+            text = font.render(message, True, (0,0,0),(150, 171, 255))
+            screen.blit(text,(100,100))
+            pygame.display.update()
+            ###print(self.name + "'s health is: ", self.health) ###
 
     def attack(self):
         return self.agg_player.attack() # aggregation to reuse the player class's attack method
+    
+    def update_text(self):
+        return self.agg_player.update_text()
 
 #screen.fill(white)
 #pygame.display.flip()
@@ -225,8 +256,12 @@ def battle(e, power):
     p1.health = 10
     while (battling == True):
         p1.take_damage(e.attack(), e.strength, e.name)
+        #p1.update_text
         p1.check_health()
-            
+        
+        time.sleep(3)
+        p1.update_text
+
         # player loses
         if ((p1.health <= 0)):
             battling == False
@@ -248,19 +283,33 @@ def battle(e, power):
         else:
             print("invalid response! your turn has been skipped.") ###
         """
-        time.sleep(1.5)
+
+        screen.fill(white)
+
+        e.take_damage(p1.attack(), (p1.strength), p1.name)
+        e.check_health()
+        print(e.health)
+
+        time.sleep(3)
+        e.update_text()
+
+        if e.health <= 0:
+            battling == False
+            break
 
         # player wins
-        if ((e.health <= 0)):
+        """""
+        if ((e.health == 0) or (e.health < 0)):
             #print("Good job!")
-            p1.money += e.money
+            #p1.money += e.money
             #print("+" , e.money, "coins")
             #print(p1.name,"has", p1.money,"coins")
-            p1.strength += e.reward
+            #p1.strength += e.reward
             #print("+", e.reward, "strength") 
             #print(p1.name + "'s strength:",p1.strength)
             battling == False
             break
+        """
 
 def create_enemies():
     e1 = enemy("small " + enemy_names[(random.randint(0,4))] + " monster", 3, 5, (random.randint(1,4)), 3, 1, p1)
@@ -319,14 +368,19 @@ while running == True:
             if event.key == K_ESCAPE:
                 running = False
     while p1.health >= 0 and e1.health >= 0: 
+        battle(e1, p1.power)
+
+        """
         #clock.tick(5)
         p1.take_damage(e1.attack(), e1.strength, e1.name)
+        screen.fill(white)
         #pygame.display.update()
         #clock.tick(5)
         time.sleep(0.5)
         p1.update_text()
         p1.check_health()
         time.sleep(0.5)
+        """
         for event in pygame.event.get(): 
             if event.type == pygame.QUIT:
                 running = False
