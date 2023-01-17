@@ -163,11 +163,12 @@ class player(pygame.sprite.Sprite):
 
 
 class enemy(pygame.sprite.Sprite):
-    def __init__(self, name, strength, health, num, money, reward, player):
+    def __init__(self, name, strength, health, max_health, num, money, reward, player):
         super(enemy, self).__init__()
         self.name = name
         self.strength = strength
         self.health = health
+        self.max_health = max_health
         self.num = num
         self.money = money
         self.reward = reward
@@ -242,21 +243,46 @@ sword = item("sword", 8, 1, "increases strength by 5. Can be used once.", 5)
 health_spell = item("health spell", 50, 10, "increases health by 7. Can be used 10 times.", 7)
 luck_potion = special_item("luck potion", 30, 10, "increases health by a random amount between 1-10. Can be used 10 times.", 1)
 
-e1 = enemy("small " + enemy_names[(random.randint(0,4))] + " monster", 3, 5, (random.randint(1,4)), 3, 1, p1)
-e2 = enemy(enemy_names[(random.randint(0,4))] + " monster", 5, 5, (random.randint(1,4)), 9, 3, p1)
-e3 = enemy(enemy_names[(random.randint(0,4))] + " monster", 5, 10, (random.randint(1,4)), 15, 5, p1)
-boss = enemy("big "+ enemy_names[(random.randint(0,4))] + " monster", 8, 15, (random.randint(1,4)), 30, 10, p1) 
+e1 = enemy("small " + enemy_names[(random.randint(0,4))] + " monster", 3, 5, 5, (random.randint(1,4)), 3, 1, p1)
+e2 = enemy(enemy_names[(random.randint(0,4))] + " monster", 5, 5, 5, (random.randint(1,4)), 9, 3, p1)
+e3 = enemy(enemy_names[(random.randint(0,4))] + " monster", 5, 10, 10, (random.randint(1,4)), 15, 5, p1)
+boss = enemy("big "+ enemy_names[(random.randint(0,4))] + " monster", 8, 15, 15, (random.randint(1,4)), 30, 10, p1) 
 
 # enemy names are randomized from this list 
 enemy_names = ["cave", "forest", "tree", "water", "fire"]
+
+big_font = pygame.font.Font('freesansbold.ttf', 80)
+start_text = font.render("Play", True, (0,0,0))
+start_text_rect = start_text.get_rect()
+start_text_rect.center = (100,100)
+
 
 # function used for all battles 
 def battle(e, power):
     battling = True
     p1.health = 10
+    e.health = e.max_health
     while (battling == True):
+
+
+        print(battling)
         p1.take_damage(e.attack(), e.strength, e.name)
-        #p1.update_text
+        time.sleep(1.5)
+
+        num = 0
+        key_pressed = pygame.key.get_pressed()
+        while num <= 100:
+            key_pressed = pygame.key.get_pressed()
+            screen_width = screen.get_width()
+            screen_height = screen.get_height()
+            p1.update(key_pressed, screen_width, screen_height)
+            screen.fill(white)
+            screen.blit(p1.sprite, p1.hitbox) # sprite goes to top left corner
+            clock = pygame.time.Clock()
+            pygame.display.flip()
+            clock.tick(150)
+            num += 1
+
         p1.check_health()
         
         time.sleep(3)
@@ -264,7 +290,7 @@ def battle(e, power):
 
         # player loses
         if ((p1.health <= 0)):
-            battling == False
+            battling = False
             break
 
         ###ans = input("What do you do? \n") ##
@@ -293,9 +319,12 @@ def battle(e, power):
         time.sleep(3)
         e.update_text()
 
-        if e.health <= 0:
-            battling == False
-            break
+        if ((e.health <= 0)):
+            print("in the loop!")
+            battling = False
+            #break
+
+        print(battling)
 
         # player wins
         """""
@@ -317,21 +346,16 @@ def create_enemies():
     e3 = enemy(enemy_names[(random.randint(0,4))] + " monster", 5, 10, (random.randint(1,4)), 15, 5, p1)
     boss = enemy("big "+ enemy_names[(random.randint(0,4))] + " monster", 8, 15, (random.randint(1,4)), 30, 10, p1) 
 
-big_font = pygame.font.Font('freesansbold.ttf', 80)
-start_text = font.render("Play", True, (0,0,0))
-start_text_rect = start_text.get_rect()
-start_text_rect.center = (100,100)
-
-clock = pygame.time.Clock()
-
 # start screen
 running = True
+playing = False
 while running == True:
     key_pressed = pygame.key.get_pressed()
     mouse_pos = pygame.mouse.get_pos()
     screen_width = screen.get_width()
     screen_height = screen.get_height()
     screen.fill(white)
+    clock = pygame.time.Clock()
     for event in pygame.event.get():
         if event.type == pygame.QUIT:
             running = False
@@ -346,14 +370,41 @@ while running == True:
         if start_text_rect.collidepoint(mouse_pos):
             p1.update(key_pressed, screen_width, screen_height)
             screen.blit(p1.sprite, p1.hitbox) # sprite goes to top left corner
-            running = False
+            playing = True
+
+    # game loop
+    while playing == True:
+
+        key_pressed = pygame.key.get_pressed()
+        mouse_pos = pygame.mouse.get_pos()
+        screen_width = screen.get_width()
+        screen_height = screen.get_height()
+        screen.fill(white)
+        clock = pygame.time.Clock()
+        for event in pygame.event.get():
+            if event.type == pygame.QUIT:
+                playing = False
+            elif event.type == KEYDOWN:
+                if event.key == K_ESCAPE:
+                    playing = False
+        #while p1.health >= 0 and e1.health >= 0: 
+            #battle(e1, p1.power)
+
+        battle(e1, p1.power)
+        playing = False
+
+        p1.update(key_pressed, screen_width, screen_height)
+        screen.blit(p1.sprite, p1.hitbox)
+        pygame.display.flip()
+        clock.tick(150) #150
 
     pygame.display.flip()
     clock.tick(150) #150
+pygame.quit()
 
-# main loop
-running = True
-while running == True:
+"""""
+# game loop
+while playing == True:
 
     key_pressed = pygame.key.get_pressed()
     mouse_pos = pygame.mouse.get_pos()
@@ -363,52 +414,56 @@ while running == True:
     clock = pygame.time.Clock()
     for event in pygame.event.get():
         if event.type == pygame.QUIT:
+            playing = False
+        elif event.type == KEYDOWN:
+            if event.key == K_ESCAPE:
+                playing = False
+    #while p1.health >= 0 and e1.health >= 0: 
+        #battle(e1, p1.power)
+
+    battle(e1, p1.power)
+    playing = False
+    """
+"""""
+    #clock.tick(5)
+    p1.take_damage(e1.attack(), e1.strength, e1.name)
+    screen.fill(white)
+    #pygame.display.update()
+    #clock.tick(5)
+    time.sleep(0.5)
+    p1.update_text()
+    p1.check_health()
+    time.sleep(0.5)
+    """
+"""""
+    for event in pygame.event.get(): 
+        if event.type == pygame.QUIT:
             running = False
         elif event.type == KEYDOWN:
             if event.key == K_ESCAPE:
                 running = False
-    while p1.health >= 0 and e1.health >= 0: 
-        battle(e1, p1.power)
-
-        """
-        #clock.tick(5)
-        p1.take_damage(e1.attack(), e1.strength, e1.name)
-        screen.fill(white)
-        #pygame.display.update()
-        #clock.tick(5)
-        time.sleep(0.5)
-        p1.update_text()
-        p1.check_health()
-        time.sleep(0.5)
-        """
-        for event in pygame.event.get(): 
-            if event.type == pygame.QUIT:
-                running = False
-            elif event.type == KEYDOWN:
-                if event.key == K_ESCAPE:
+    """
+"""
+    elif event.type == NEW_BATTLE: # this part is not working 
+        create_enemies()
+        while p1.health >= 0 and e1.health >= 0: 
+            clock.tick(5)
+            p1.take_damage(e1.num, e1.strength, e1.name)
+            clock.tick(5)
+            pygame.display.flip()
+            p1.check_health()
+            for event in pygame.event.get(): 
+                if event.type == pygame.QUIT:
                     running = False
-        
-        """
-        elif event.type == NEW_BATTLE: # this part is not working 
-            create_enemies()
-            while p1.health >= 0 and e1.health >= 0: 
-                clock.tick(5)
-                p1.take_damage(e1.num, e1.strength, e1.name)
-                clock.tick(5)
-                pygame.display.flip()
-                p1.check_health()
-                for event in pygame.event.get(): 
-                    if event.type == pygame.QUIT:
+                elif event.type == KEYDOWN:
+                    if event.key == K_ESCAPE:
                         running = False
-                    elif event.type == KEYDOWN:
-                        if event.key == K_ESCAPE:
-                            running = False
-        """
-
+    """
+"""""
     p1.update(key_pressed, screen_width, screen_height)
     screen.blit(p1.sprite, p1.hitbox)
 
     pygame.display.flip()
     clock.tick(150) #150
-
-pygame.quit()
+    """
+#pygame.quit()
