@@ -51,6 +51,7 @@ class player(pygame.sprite.Sprite):
         self.sprite = pygame.Surface((50, 50)) # create character sprite
         self.sprite.fill((0,0,0))
         self.hitbox = self.sprite.get_rect() # hitbox = rect
+        #self.hitbox.center(50, 50)
         self.text = font.render(" ", True, (255,255,255), (0,0,0)) ###3
         #self.text2 = font.render(" ", True, (255,255,255), (0,0,0))
         self.health_message = self.name + "r health is: " + str(self.health)
