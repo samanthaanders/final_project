@@ -51,7 +51,7 @@ class player(pygame.sprite.Sprite):
         self.sprite = pygame.Surface((50, 50)) # create character sprite
         self.sprite.fill((0,0,0))
         self.hitbox = self.sprite.get_rect() # hitbox = rect
-        #self.hitbox.center(50, 50)
+        self.hitbox.center = ((screen.get_width() / 4), (screen.get_height() / 2))
         self.text = font.render(" ", True, (255,255,255), (0,0,0)) ###3
         #self.text2 = font.render(" ", True, (255,255,255), (0,0,0))
         self.health_message = self.name + "r health is: " + str(self.health)
@@ -77,8 +77,11 @@ class player(pygame.sprite.Sprite):
             screen.blit(text,(((screen_width / 2) - (text.get_width() / 2)),80))
             pygame.display.update()
         else:
-            text = font.render(("the attack failed!"), True, (0,0,0), (150, 171, 255))
+            self.health -= damage / 8
+            text = font.render(("the attack was very weak"), True, (0,0,0), (150, 171, 255))
             screen.blit(text,(((screen_width / 2) - (text.get_width() / 2)),80))
+            pygame.display.update()
+
     def check_health(self):
         if (self.health <= 0):
             message = self.name + " lost!"
@@ -150,8 +153,8 @@ class player(pygame.sprite.Sprite):
 
         if self.hitbox.left < 0:
             self.hitbox.left = 0
-        if self.hitbox.right > screen_width:
-            self.hitbox.right = screen_width
+        if self.hitbox.right > (screen_width / 3):
+            self.hitbox.right = (screen_width / 3)
         if self.hitbox.top <= 0:
             self.hitbox.top = 0
         if self.hitbox.bottom >= screen_height:
@@ -175,8 +178,9 @@ class enemy(pygame.sprite.Sprite):
         self.reward = reward
         self.agg_player = player
         self.sprite = pygame.Surface((50, 50)) # create character sprite
-        self.sprite.fill((0,0,0))
+        self.sprite.fill((255,0,0))
         self.hitbox = self.sprite.get_rect() # hitbox = rect
+        self.hitbox.center = (((screen.get_width() / 4)* 3), (screen.get_height() / 2))
 
     def take_damage(self, num, damage, name, screen_width):
         message = str(name) + " attacked!"
@@ -200,9 +204,9 @@ class enemy(pygame.sprite.Sprite):
             text = font.render("the attack was weak", True, (0,0,0), (150, 171, 255))
             screen.blit(text,(((screen_width / 2) - (text.get_width() / 2)),80))
             pygame.display.update()
-            ###print("the attack was weak") ###
         else:
-            text = font.render("the attack failed!", True, (0,0,0), (150, 171, 255))
+            self.health -= damage / 8
+            text = font.render("the attack was very weak!", True, (0,0,0), (150, 171, 255))
             screen.blit(text,(((screen_width / 2) - (text.get_width() / 2)),80))
             pygame.display.update()
             ###print("the attack failed!") ##
@@ -227,6 +231,20 @@ class enemy(pygame.sprite.Sprite):
     def update_text(self):
         return self.agg_player.update_text()
 
+class attacks(pygame.sprite.Sprite):
+    def __init__(self, colour):
+        super(attacks, self).__init__()
+        self.colour = colour
+        self.sprite = pygame.Surface((50, 50))
+        self.sprite.fill((colour))
+        self.hitbox = self.sprite.get_rect()
+    def attack(self, character, direction):
+        if direction == ("left"):
+            self.hitbox.move_ip(-5, 0)
+        else:
+            self.hitbox.move_ip(5, 0)
+
+
 #screen.fill(white)
 #pygame.display.flip()
 
@@ -249,6 +267,8 @@ e2 = enemy(enemy_names[(random.randint(0,4))] + " monster", 5, 5, 5, (random.ran
 e3 = enemy(enemy_names[(random.randint(0,4))] + " monster", 5, 10, 10, (random.randint(1,4)), 15, 5, p1)
 boss = enemy("big "+ enemy_names[(random.randint(0,4))] + " monster", 8, 15, 15, (random.randint(1,4)), 30, 10, p1) 
 
+e_attack = attacks((255,0,0))
+
 # enemy names are randomized from this list 
 enemy_names = ["cave", "forest", "tree", "water", "fire"]
 
@@ -262,23 +282,39 @@ def battle(e, power):
     battling = True
     p1.health = 10
     e.health = e.max_health
+    p1.hitbox.center = ((screen.get_width() / 4), (screen.get_height() / 2))
     while (battling == True):
+
+        for event in pygame.event.get():
+                if event.type == pygame.QUIT:
+                    battling = False
+                elif event.type == KEYDOWN:
+                    if event.key == K_ESCAPE:
+                        battling = False
+
+        screen.blit(p1.sprite, p1.hitbox)
+        screen.blit(e.sprite, e.hitbox)
 
         screen_width = screen.get_width()
 
-        print(battling)
+        p1.num = (random.randint(1,4))
         p1.take_damage(e.attack(), e.strength, e.name, screen_width)
         time.sleep(1.5)
 
         num = 0
         key_pressed = pygame.key.get_pressed()
-        while num <= 200:
+        e_attack.hitbox.center = ((e.hitbox.left), (e.hitbox.top + random.randint((0 + (e.hitbox.height)), (screen.get_height() - (e.hitbox.height * 2)))))
+        print(e_attack.hitbox.center)
+        while num <= 500:
             key_pressed = pygame.key.get_pressed()
             screen_width = screen.get_width()
             screen_height = screen.get_height()
             p1.update(key_pressed, screen_width, screen_height)
             screen.fill(white)
-            screen.blit(p1.sprite, p1.hitbox) # sprite goes to top left corner
+            screen.blit(e_attack.sprite, e_attack.hitbox)
+            screen.blit(p1.sprite, p1.hitbox)
+            screen.blit(e.sprite, e.hitbox)
+            e_attack.attack(e, "left")
             clock = pygame.time.Clock()
             for event in pygame.event.get():
                 if event.type == pygame.QUIT:
@@ -321,23 +357,22 @@ def battle(e, power):
         screen.fill(white)
 
         screen.blit(p1.sprite, p1.hitbox)
+        screen.blit(e.sprite, e.hitbox)
 
+        e.num = (random.randint(1,4))
         e.take_damage(p1.attack(), (p1.strength), p1.name, screen_width)
         e.check_health()
-        print(e.health)
 
         time.sleep(3)
         #e.update_text()
         screen.fill(white)
 
-        screen.blit(p1.sprite, p1.hitbox)
+        #screen.blit(p1.sprite, p1.hitbox)
 
         if ((e.health <= 0)):
-            print("in the loop!")
             battling = False
             #break
 
-        print(battling)
 
         # player wins
         """""
