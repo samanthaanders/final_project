@@ -74,7 +74,7 @@ class player(pygame.sprite.Sprite):
             pygame.display.update()
     def attack(self):
         return random.randint(1,4)
-    def update(self, key_pressed, screen_width, screen_height):
+    def update(self, key_pressed, screen_width, screen_height): # function used to move the player sprite 
         if key_pressed[K_UP]:
             self.hitbox.move_ip(0, -5)
         if key_pressed[K_DOWN]:
